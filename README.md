@@ -1,8 +1,8 @@
 <!--
  * @Date: 2022-01-09 22:00:26
  * @LastEditors: Waterking
- * @LastEditTime: 2022-01-10 22:47:14
- * @FilePath: /Adv-ALSTM/README.md
+ * @LastEditTime: 2022-01-11 12:59:17
+ * @FilePath: /FinRL/Users/waterking/Desktop/Quant_Experiment_Code/Prediction/Adv-ALSTM/README.md
 -->
 # Adv-ALSTM
 Code for paper "Enhancing Stock Movement Prediction with Adversarial Training" IJCAI 2019
@@ -30,11 +30,8 @@ For usage of this code, please cite our paper
 # 数据集格式
 见data/dataset_example
 
-ourpped/xxx.csv: xxx股票的csv文件
-
-raw/xxx.csv: xxx股票的原始csv文件
-每只股票一个csv
-Date	Open	High	Low	Close	AdjClose	Volume
+ourpped/xxx.csv: xxx股票的csv文件，每个股票一个csv
+c_high = high/low -1
 
 trading_dates.csv: 每一行是一个YYYY/MM/DD格式的交易日历
 
@@ -43,9 +40,10 @@ https://github.com/fulifeng/Adv-ALSTM/issues/2
 
 # 如何自定义数据集
 将数据处理成ourpped的格式即可
-空值是-123321
+空值是-123321！！
+
 
 # 步骤
-① 处理数据成它的格式
+① 处理数据成它的格式，添加trading_days.csv
 ② 修改load.py的路径和划分数据集时间点
 ③ 修改pred_lstm的划分时间点
