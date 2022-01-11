@@ -489,10 +489,10 @@ class AWLSTM:
         best_test_pred = np.zeros(self.tes_gt.shape, dtype=float)
 
         best_valid_perf = {
-            'acc': 0, 'mcc': -2
+            'acc': 0, 'mcc': -2, 'f1': 0
         }
         best_test_perf = {
-            'acc': 0, 'mcc': -2
+            'acc': 0, 'mcc': -2, 'f1': 0
         }
 
         bat_count = self.tra_pv.shape[0] // self.batch_size

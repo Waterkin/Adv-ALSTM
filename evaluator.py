@@ -1,7 +1,13 @@
+'''
+Date: 2022-01-09 22:00:26
+LastEditors: Waterking
+LastEditTime: 2022-01-11 15:26:18
+FilePath: /Adv-ALSTM/evaluator.py
+'''
 import math
 import numpy as np
 import scipy.stats as sps
-from sklearn.metrics import accuracy_score, matthews_corrcoef, mean_squared_error
+from sklearn.metrics import accuracy_score, matthews_corrcoef, mean_squared_error, f1_score
 
 
 def evaluate(prediction, ground_truth, hinge=False, reg=False):
@@ -25,6 +31,7 @@ def evaluate(prediction, ground_truth, hinge=False, reg=False):
         np.savetxt('prediction', pred, delimiter=',')
         exit(0)
     performance['mcc'] = matthews_corrcoef(ground_truth, pred)
+    performance['f1'] = f1_score(ground_truth, pred)
     return performance
 
 
