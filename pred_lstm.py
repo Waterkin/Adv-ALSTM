@@ -24,8 +24,8 @@ from evaluator import evaluate
 
 class AWLSTM:
     def __init__(self, data_path, model_path, model_save_path, parameters, steps=1, epochs=50,
-                 batch_size=256, gpu=False, tra_date='2014-01-02',
-                 val_date='2015-08-03', tes_date='2015-10-01', att=0, hinge=0,
+                 batch_size=256, gpu=False, tra_date='2017-01-02',
+                 val_date='2021-03-01', tes_date='2021-08-01', att=0, hinge=0,
                  fix_init=0, adv=0, reload=0):
         self.data_path = data_path
         self.model_path = model_path
@@ -366,37 +366,37 @@ class AWLSTM:
 
         print('Clean samples performance:', tra_perf)
         print('Adversarial samples performance:', adv_perf)
+        if True:
+            # test on validation set
+            feed_dict = {
+                self.pv_var: self.val_pv,
+                self.wd_var: self.val_wd,
+                self.gt_var: self.val_gt
+            }
+            val_loss, val_pre, val_adv_pre = sess.run(
+                (self.loss, self.pred, self.adv_pred), feed_dict
+            )
+            cur_valid_perf = evaluate(val_pre, self.val_gt, self.hinge)
+            print('\tVal per clean:', cur_valid_perf)
+            adv_valid_perf = evaluate(val_adv_pre, self.val_gt, self.hinge)
+            print('\tVal per adversarial:', adv_valid_perf)
 
-        # test on validation set
-        feed_dict = {
-            self.pv_var: self.val_pv,
-            self.wd_var: self.val_wd,
-            self.gt_var: self.val_gt
-        }
-        val_loss, val_pre, val_adv_pre = sess.run(
-            (self.loss, self.pred, self.adv_pred), feed_dict
-        )
-        cur_valid_perf = evaluate(val_pre, self.val_gt, self.hinge)
-        print('\tVal per clean:', cur_valid_perf)
-        adv_valid_perf = evaluate(val_adv_pre, self.val_gt, self.hinge)
-        print('\tVal per adversarial:', adv_valid_perf)
+            # test on testing set
+            feed_dict = {
+                self.pv_var: self.tes_pv,
+                self.wd_var: self.tes_wd,
+                self.gt_var: self.tes_gt
+            }
+            test_loss, tes_pre, tes_adv_pre = sess.run(
+                (self.loss, self.pred, self.adv_pred), feed_dict
+            )
+            cur_test_perf = evaluate(tes_pre, self.tes_gt, self.hinge)
+            print('\tTest per clean:', cur_test_perf)
+            adv_test_perf = evaluate(tes_adv_pre, self.tes_gt, self.hinge)
+            print('\tTest per adversarial:', adv_test_perf)
 
-        # test on testing set
-        feed_dict = {
-            self.pv_var: self.tes_pv,
-            self.wd_var: self.tes_wd,
-            self.gt_var: self.tes_gt
-        }
-        test_loss, tes_pre, tes_adv_pre = sess.run(
-            (self.loss, self.pred, self.adv_pred), feed_dict
-        )
-        cur_test_perf = evaluate(tes_pre, self.tes_gt, self.hinge)
-        print('\tTest per clean:', cur_test_perf)
-        adv_test_perf = evaluate(tes_adv_pre, self.tes_gt, self.hinge)
-        print('\tTest per adversarial:', adv_test_perf)
-
-        sess.close()
-        tf.reset_default_graph()
+            sess.close()
+            tf.reset_default_graph()
 
     def predict_record(self):
         self.construct_graph()
@@ -498,6 +498,11 @@ class AWLSTM:
         bat_count = self.tra_pv.shape[0] // self.batch_size
         if not (self.tra_pv.shape[0] % self.batch_size == 0):
             bat_count += 1
+
+        epoch_loss = []
+        epoch_acc = []
+        epoch_mcc = []
+        epoch_f1 = []
         for i in range(self.epochs):
             t1 = time()
             # first_batch = True
@@ -505,6 +510,12 @@ class AWLSTM:
             tra_obj = 0.0
             l2 = 0.0
             tra_adv = 0.0
+
+            batch_loss = []
+            batch_acc = []
+            batch_mcc = []
+            batch_f1 = []
+
             for j in range(bat_count):
                 pv_b, wd_b, gt_b = self.get_batch(j * self.batch_size)
                 feed_dict = {
@@ -518,12 +529,31 @@ class AWLSTM:
                     feed_dict
                 )
 
+                cur_train_perf = evaluate(cur_pre, self.tra_gt, self.hinge)
+
+                batch_loss += tra_loss
+                batch_acc += cur_train_perf['acc']
+                batch_mcc += cur_train_perf['mcc']
+                batch_f1 += cur_train_perf['f1']
+
                 tra_loss += cur_loss
                 tra_obj += cur_obj
                 l2 += cur_l2
                 tra_adv += cur_al
             print('----->>>>> Training:', tra_obj / bat_count,
                   tra_loss / bat_count, l2 / bat_count, tra_adv / bat_count)
+
+            batch_loss_ = np.average(batch_loss)
+            batch_acc_ = np.average(batch_acc)
+            batch_mcc_ = np.average(batch_mcc)
+            batch_f1_ = np.average(batch_f1)
+
+            epoch_loss.append(batch_loss_)
+            epoch_acc.append(batch_acc_)
+            epoch_mcc.append(batch_mcc_)
+            epoch_f1.append(batch_f1_)
+
+
 
             if not tune_para:
                 tra_loss = 0.0
@@ -586,6 +616,23 @@ class AWLSTM:
             )
             t4 = time()
             print('epoch:', i, ('time: %.4f ' % (t4 - t1)))
+        
+        import matplotlib.pyplot as plt
+        def plot(epochs, metric, name):
+            x = range(1, epochs+1)
+            fig = plt.figure(figsize=(15, 10))
+            plt.plot(x, metric, '-o', label = 'acc')
+            plt.xlabel('epoch')
+            plt.ylabel('acc')
+            plt.legend()
+            plt.show()
+            plt.savefig(f'picture/{name}.png')
+            
+        plot(epochs=self.epochs, metric=epoch_loss, name='train_loss')
+        plot(epochs=self.epochs, metric=epoch_acc, name='train_acc')
+        plot(epochs=self.epochs, metric=epoch_mcc, name='train_mcc')
+        plot(epochs=self.epochs, metric=epoch_f1, name='train_f1')
+
         print('\nBest Valid performance:', best_valid_perf)
         print('\tBest Test performance:', best_test_perf)
         sess.close()
@@ -615,7 +662,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--path', help='path of pv data', type=str,
                         default='./data/stocknet-dataset/price/ourpped')
     parser.add_argument('-l', '--seq', help='length of history', type=int,
-                        default=5)
+                        default=5)#5->40
     parser.add_argument('-u', '--unit', help='number of hidden units in lstm',
                         type=int, default=32)
     parser.add_argument('-l2', '--alpha_l2', type=float, default=1e-2,
@@ -663,7 +710,12 @@ if __name__ == '__main__':
         'eps': float(args.epsilon_adv),
         'lr': float(args.learning_rate)
     }
-
+    '''
+    if 'stocknet' in args.path:
+        tra_date = '2017-01-03'
+        val_date = '2021-03-01'
+        tes_date = '2021-08-02'
+    '''
     if 'stocknet' in args.path:
         tra_date = '2014-01-02'
         val_date = '2015-08-03'

@@ -136,10 +136,19 @@ def load_cla_data(data_path, tra_date, val_date, tes_date, seq=2,
 
 if __name__ == '__main__':
     # TEST
+    
     _, _, tra_gt, _, _, val_gt, _, _, tes_gt = load_cla_data(
         '/home/ffl/nus/MM/fintech/tweet_stock/data/stocknet-dataset/price/ourpped',
         '2014-01-02', '2015-08-03', '2015-10-01'
     )
+    
+
+    '''
+    _, _, tra_gt, _, _, val_gt, _, _, tes_gt = load_cla_data(
+        '/home/ffl/nus/MM/fintech/tweet_stock/data/stocknet-dataset/price/ourpped',
+        '2017-01-01', '2021-03-01', '2021-08-01'
+    )
+    '''
     print(np.sum(tra_gt))
     print(np.sum(val_gt))
     print(np.sum(tes_gt))

@@ -1,8 +1,8 @@
 <!--
  * @Date: 2022-01-09 22:00:26
  * @LastEditors: Waterking
- * @LastEditTime: 2022-01-11 12:59:17
- * @FilePath: /FinRL/Users/waterking/Desktop/Quant_Experiment_Code/Prediction/Adv-ALSTM/README.md
+ * @LastEditTime: 2022-03-12 15:59:39
+ * @FilePath: /Adv-ALSTM/README.md
 -->
 # Adv-ALSTM
 Code for paper "Enhancing Stock Movement Prediction with Adversarial Training" IJCAI 2019
@@ -47,3 +47,17 @@ https://github.com/fulifeng/Adv-ALSTM/issues/2
 ① 处理数据成它的格式，添加trading_days.csv
 ② 修改load.py的路径和划分数据集时间点
 ③ 修改pred_lstm的划分时间点
+
+change pred_lstm seq=5->40
+
+# 画图
+桃革plt = pred_lstm.py line 549
+            batch_loss_ = np.average(batch_loss)
+            batch_acc_ = np.average(batch_acc)
+            batch_mcc_ = np.average(batch_mcc)
+            batch_f1_ = np.average(batch_f1)
+
+            epoch_loss.append(batch_loss_)
+            epoch_acc.append(batch_acc_)
+            epoch_mcc.append(batch_mcc_)
+            epoch_f1.append(batch_f1_)
